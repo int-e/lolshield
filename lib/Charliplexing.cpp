@@ -43,7 +43,7 @@ volatile unsigned int LedSign::tcnt2;
 
 
 struct videoPage {
-    uint8_t pixels[SHADES][48];  // TODO: is 48 right?
+    uint8_t pixels[SHADES-1][48];
 }; 
 
 /* -----------------------------------------------------------------  */
@@ -473,7 +473,7 @@ ISR(TIMER2_OVF_vect) {
         cycle++;
     }
 
-    if (cycle > 24) {
+    if (cycle >= 24) {
         cycle = 0;
 
         // If the page should be flipped, do it here.
