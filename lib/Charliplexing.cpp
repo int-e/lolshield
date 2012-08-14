@@ -430,45 +430,45 @@ ISR(TIMER2_OVF_vect)
 
     // For each cycle, we have potential SHADES pages to display.
     // Once every page has been displayed, then we move on to the next
-    // cycle.
+    // cycle. The last page is blank, for dimming.
 
-    // 24 Cycles of Matrix
+    // Each page consists of two half-pages that are displayed in the same way.
+
+    // 12 cycles of matrix (one half-page)
     static uint8_t cycle = 0;
 
-    // SHADES pages to display
+    // 2*SHADES half-pages to display
     static uint8_t page = 0;
 
-    TCCR2B = frontTimer->prescaler[page];
-    TCNT2 = frontTimer->counts[page];
+    TCCR2B = frontTimer->prescaler[page/2];
+    TCNT2 = frontTimer->counts[page/2];
 
-    uint8_t bitsLow  = displayBuffer->pixels[page][cycle*2];
-    uint8_t bitsHigh = displayBuffer->pixels[page][cycle*2+1];
+    // Cast 'pixels' buffer to half-page addressable layout.
+    uint8_t (*pixels)[12][2] = (uint8_t (*)[12][2])displayBuffer->pixels;
+    uint8_t bitsLow  = pixels[page][cycle][0];
+    uint8_t bitsHigh = pixels[page][cycle][1];
 
     PORTD = bitsLow;
     PORTB = bitsHigh;
 
-    if ( page < SHADES - 1) { 
+    if (page < 2*(SHADES - 1)) {
         if (cycle < 6) {
             bitsLow  |= _BV(cycle+2);
-        } else if (cycle < 12) {
-            bitsHigh |= _BV(cycle-6);
-        } else if (cycle < 18) {
-            bitsLow |= _BV(cycle+2-12);
         } else {
-            bitsHigh |= _BV(cycle-6-12);
+            bitsHigh |= _BV(cycle-6);
         }
         DDRD = bitsLow;
         DDRB = bitsHigh;
-    } 
+    }
 
     page++;
 
-    if (page >= SHADES) {
+    if (page >= 2*SHADES) {
         page = 0;
         cycle++;
     }
 
-    if (cycle >= 24) {
+    if (cycle >= 12) {
         cycle = 0;
 
         // If the page should be flipped, do it here.
