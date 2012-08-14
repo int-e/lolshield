@@ -412,9 +412,10 @@ void LedSign::SetBrightness(uint8_t brightness)
 /* -----------------------------------------------------------------  */
 /** The Interrupt code goes here !  
  */
-ISR(TIMER2_OVF_vect) {
-        DDRD  = 0x0;
-        DDRB  = 0x0;
+ISR(TIMER2_OVF_vect)
+{
+    DDRD  = 0x0;
+    DDRB  = 0x0;
 #ifdef MEASURE_ISR_TIME
     digitalWrite(statusPIN, HIGH);
 #endif
@@ -432,39 +433,24 @@ ISR(TIMER2_OVF_vect) {
     TCCR2B = frontTimer->prescaler[page];
     TCNT2 = frontTimer->counts[page];
 
-    if ( page < SHADES - 1) { 
+    PORTD = displayBuffer->pixels[page][cycle*2];
+    PORTB = displayBuffer->pixels[page][cycle*2+1];
 
+    if ( page < SHADES - 1) { 
         if (cycle < 6) {
             DDRD  = _BV(cycle+2) | displayBuffer->pixels[page][cycle*2];
-            PORTD =            displayBuffer->pixels[page][cycle*2];
-
             DDRB  =            displayBuffer->pixels[page][cycle*2+1];
-            PORTB =            displayBuffer->pixels[page][cycle*2+1];
         } else if (cycle < 12) {
             DDRD =             displayBuffer->pixels[page][cycle*2];
-            PORTD =            displayBuffer->pixels[page][cycle*2];
-
             DDRB  = _BV(cycle-6) | displayBuffer->pixels[page][cycle*2+1];
-            PORTB =            displayBuffer->pixels[page][cycle*2+1];      
         } else if (cycle < 18) {
             DDRD  = _BV(cycle+2-12) | displayBuffer->pixels[page][cycle*2];
-            PORTD =            displayBuffer->pixels[page][cycle*2];
-
             DDRB  =            displayBuffer->pixels[page][cycle*2+1];
-            PORTB =            displayBuffer->pixels[page][cycle*2+1];
         } else {
             DDRD =             displayBuffer->pixels[page][cycle*2];
-            PORTD =            displayBuffer->pixels[page][cycle*2];
-
             DDRB  = _BV(cycle-6-12) | displayBuffer->pixels[page][cycle*2+1];
-            PORTB =            displayBuffer->pixels[page][cycle*2+1];      
         }
     } 
-    else {
-        // Turn everything off
-        DDRD  = 0x0;
-        DDRB  = 0x0;
-    }
 
     page++;
 
