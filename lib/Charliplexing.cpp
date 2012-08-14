@@ -441,23 +441,24 @@ ISR(TIMER2_OVF_vect)
     TCCR2B = frontTimer->prescaler[page];
     TCNT2 = frontTimer->counts[page];
 
-    PORTD = displayBuffer->pixels[page][cycle*2];
-    PORTB = displayBuffer->pixels[page][cycle*2+1];
+    uint8_t bitsLow  = displayBuffer->pixels[page][cycle*2];
+    uint8_t bitsHigh = displayBuffer->pixels[page][cycle*2+1];
+
+    PORTD = bitsLow;
+    PORTB = bitsHigh;
 
     if ( page < SHADES - 1) { 
         if (cycle < 6) {
-            DDRD  = _BV(cycle+2) | displayBuffer->pixels[page][cycle*2];
-            DDRB  =            displayBuffer->pixels[page][cycle*2+1];
+            bitsLow  |= _BV(cycle+2);
         } else if (cycle < 12) {
-            DDRD =             displayBuffer->pixels[page][cycle*2];
-            DDRB  = _BV(cycle-6) | displayBuffer->pixels[page][cycle*2+1];
+            bitsHigh |= _BV(cycle-6);
         } else if (cycle < 18) {
-            DDRD  = _BV(cycle+2-12) | displayBuffer->pixels[page][cycle*2];
-            DDRB  =            displayBuffer->pixels[page][cycle*2+1];
+            bitsLow |= _BV(cycle+2-12);
         } else {
-            DDRD =             displayBuffer->pixels[page][cycle*2];
-            DDRB  = _BV(cycle-6-12) | displayBuffer->pixels[page][cycle*2+1];
+            bitsHigh |= _BV(cycle-6-12);
         }
+        DDRD = bitsLow;
+        DDRB = bitsHigh;
     } 
 
     page++;
